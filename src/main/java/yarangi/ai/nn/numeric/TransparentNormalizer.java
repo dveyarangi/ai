@@ -9,4 +9,10 @@ public class TransparentNormalizer implements Normalizer
 
 	public double[] normalizeOutput(double[] value) { return value; }
 
+	@Override
+	public int inputSize() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 }

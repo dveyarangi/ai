@@ -22,6 +22,7 @@ public class NeuralNetworkRunner
 	{
 		this.nn = nn;
 		this.normalizer = normalizer;
+//		System.out.println(normalizer.inputSize());
 	}
 	
 	public double[] run(double [] inputs)
@@ -52,7 +53,6 @@ public class NeuralNetworkRunner
 	 */
 	public void train(double [] inputs, double [] outputs, double learningRate)
 	{
-//		run(inputs);
 		nn.propagateError(outputs, learningRate);
 	}
 	

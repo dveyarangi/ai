@@ -63,4 +63,7 @@ public class ScalingNormalizer implements Normalizer
 		return output;
 	}
 
+	@Override
+	public int inputSize() { return inputRange.length; }
+
 }

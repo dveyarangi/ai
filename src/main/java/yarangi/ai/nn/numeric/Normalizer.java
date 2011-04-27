@@ -27,5 +27,7 @@ public interface Normalizer {
 	 * @return
 	 */
 	public double [] denormalizeOutput(double [] value);
+
+	public int inputSize();
 	
 }
