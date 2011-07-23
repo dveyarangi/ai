@@ -6,7 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-
+import org.apache.log4j.Logger;;
 /**
  * This class encapsulates neural network training and running functionality.
  * 
@@ -18,13 +18,40 @@ public class NeuralNetworkRunner
 	private BackpropNetwork nn;
 	private Normalizer normalizer;
 	
+	private static Logger log = Logger.getLogger(NeuralNetworkRunner.class);
+	
 	public NeuralNetworkRunner(Normalizer normalizer, BackpropNetwork nn)
 	{
 		this.nn = nn;
 		this.normalizer = normalizer;
 //		System.out.println(normalizer.inputSize());
 	}
+
+	public NeuralNetworkRunner()
+	{
+
+	}
 	
+	protected BackpropNetwork getNetwork() {
+		return nn;
+	}
+
+
+	protected void setNetwork(BackpropNetwork nn) {
+		this.nn = nn;
+	}
+
+
+	protected Normalizer getNormalizer() {
+		return normalizer;
+	}
+
+
+	protected void setNormalizer(Normalizer normalizer) {
+		this.normalizer = normalizer;
+	}
+
+
 	public double[] run(double [] inputs)
 	{
 		
@@ -51,9 +78,9 @@ public class NeuralNetworkRunner
 	 * @param outputs
 	 * @param learningRate
 	 */
-	public void train(double [] inputs, double [] outputs, double learningRate)
+	public void train(double [] outputs, double learningRate)
 	{
-		nn.propagateError(outputs, learningRate);
+		nn.propagateError(normalizer.normalizeOutput(outputs), learningRate);
 	}
 	
 	public static BackpropNetwork load(String filename) throws Exception
@@ -82,19 +109,11 @@ public class NeuralNetworkRunner
 			os.writeObject(net);
 			os.flush();
 			
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} 
+		catch (FileNotFoundException e) { log.error(e); } 
+		catch (IOException e) { log.error(e); }
+		finally { try {	os.close();	} catch (IOException e) { log.error(e); } 
 		}
-		finally { try {
-			os.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} }
 	}
 	
 	
