@@ -22,12 +22,11 @@ public class CompleteNeuronLayer implements Node, Serializable
 	
 	private ArrayInput input;
 	
-	private NumericAF AF;
+//	private NumericAF AF;
 	
 	public CompleteNeuronLayer(int n, NumericAF naf, double bias)
 	{
 		output = new ArrayInput(n);
-		this.AF = naf;
 		neurons = new NumericNeuron [n];
 		for(int idx = 0; idx < n; idx ++)
 		{
@@ -39,9 +38,23 @@ public class CompleteNeuronLayer implements Node, Serializable
 			addInput(new NumericNeuronInput(bias));
 	}
 	
+	public CompleteNeuronLayer(NumericAF [] nafs, double bias)
+	{
+		output = new ArrayInput(nafs.length);
+//		this.AF = naf;
+		neurons = new NumericNeuron [nafs.length];
+		for(int idx = 0; idx < nafs.length; idx ++)
+		{
+			neurons[idx] = new NumericNeuron(nafs[idx]);
+			output.add(idx, (NumericNeuronInput)neurons[idx].getOutput());
+		}
+		
+		if(bias != 0)
+			addInput(new NumericNeuronInput(bias));
+	}	
 	protected NumericNeuron [] getNeurons() { return neurons; }
 	
-	public NumericAF getAF() { return AF; }
+//	public NumericAF getAF() { return AF; }
 
 	public void activate() 
 	{
