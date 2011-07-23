@@ -114,7 +114,7 @@ public class BackpropNetwork extends NeuralNetwork implements Serializable
 				{
 					deltaSum += currDeltas[neuronIdx] * currLayer.getNeurons()[neuronIdx].getWeight(nni);
 				}
-				prevDeltas[prevNeuronIdx] = prevLayer.getAF().derivative(neuron.getSum()) * deltaSum;
+				prevDeltas[prevNeuronIdx] = neuron.getAF().derivative(neuron.getSum()) * deltaSum;
 
 			}
 			
