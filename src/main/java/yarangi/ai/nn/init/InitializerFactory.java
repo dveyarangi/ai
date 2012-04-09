@@ -1,6 +1,5 @@
 package yarangi.ai.nn.init;
 
-import yarangi.ai.nn.numeric.NumericNeuronInput;
 
 /**
  * Neural network initialization factory provides strategy for NN weights initialization.
@@ -9,7 +8,7 @@ import yarangi.ai.nn.numeric.NumericNeuronInput;
  */
 public abstract class InitializerFactory
 {
-	public static WeightsInitializer weights;
+	public static WeightsInitializer weights = new RandomWeightsInitializer( 0, 1 );
 	
 	/**
 	 * Set default weights initialization strategy.
@@ -23,6 +22,6 @@ public abstract class InitializerFactory
 	 * @param input
 	 * @return
 	 */
-	public static double createWeight(NumericNeuronInput input) {	return weights.createWeight(input); }
+	public static double createWeight() {	return weights.createWeight(); }
 	
 }

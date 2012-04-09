@@ -1,6 +1,5 @@
 package yarangi.ai.nn.init;
 
-import yarangi.ai.nn.numeric.NumericNeuronInput;
 
 /**
  * Weight initialization strategy that creates random weights inside defined values interval.
@@ -36,7 +35,7 @@ public class RandomWeightsInitializer implements WeightsInitializer
 	/**
 	 * 
 	 */
-	public double createWeight(@SuppressWarnings("unused") NumericNeuronInput input) {
+	public double createWeight() {
 		return Math.random() * span + minValue;
 	}
 	

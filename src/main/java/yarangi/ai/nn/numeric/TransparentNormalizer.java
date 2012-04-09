@@ -11,7 +11,6 @@ public class TransparentNormalizer implements Normalizer
 
 	@Override
 	public int inputSize() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 

@@ -50,7 +50,7 @@ public class NumericNeuron implements Node, Serializable
 	public void addInput(Input input) 
 	{
 		NumericNeuronInput i = (NumericNeuronInput) input;
-		inputs.put(i, InitializerFactory.createWeight(i));
+		inputs.put(i, InitializerFactory.createWeight());
 	}
 	
 	

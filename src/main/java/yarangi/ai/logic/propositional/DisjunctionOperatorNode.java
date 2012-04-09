@@ -10,7 +10,6 @@ public class DisjunctionOperatorNode extends BinaryOperatorNode <Boolean> implem
 {
 	public DisjunctionOperatorNode(BoolSentenceNode left, BoolSentenceNode right) {
 		super(left, right);
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override

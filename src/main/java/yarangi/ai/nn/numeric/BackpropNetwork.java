@@ -8,7 +8,8 @@ import yarangi.ai.nn.Input;
 import yarangi.ai.nn.NeuralNetwork;
 
 /**
- * This class implements the backpropagation neural network data structure, as well as activation and learning algorithm.
+ * This class implements the backpropagation neural network data structure, as well as
+ *  activation and learning algorithm.
  * @author hazai
  *
  */
@@ -70,7 +71,7 @@ public class BackpropNetwork extends NeuralNetwork implements Serializable
 	public Input getOutput() {	return outputLayer.getOutput(); }
 	
 	/** 
-	 * This method implements error backpropagation throw layers of this network.
+	 * This method implements error backpropagation through layers of this network.
 	 * 
 	 * @param realOutputs Target values.
 	 * @param learningRate Weight's learning rate.
