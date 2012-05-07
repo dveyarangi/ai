@@ -1,7 +1,10 @@
 package yarangi.ai.genetic;
 
-public interface IEvolver
+import java.util.List;
+
+public interface IEvolver <C extends ICandidate>
 {
-	public double [] mutate(double [] parent);
-	public double [] crossover(double [] convexParent, double [] concaveParent);
+	public C mutate(C parent);
+	public C crossover(List <C> parents);
+
 }

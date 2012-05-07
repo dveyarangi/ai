@@ -35,5 +35,10 @@ public class FullNetwork
 	{
 		return layers;
 	}
+	
+	public NumericAF getActivationFunction()
+	{
+		return af;
+	}
 
 }

@@ -8,7 +8,7 @@ package yarangi.ai.nn.init;
  */
 public abstract class InitializerFactory
 {
-	public static WeightsInitializer weights = new RandomWeightsInitializer( 0, 1 );
+	public static WeightsInitializer weights = new RandomWeightsInitializer( 0, 0.00100 );
 	
 	/**
 	 * Set default weights initialization strategy.
