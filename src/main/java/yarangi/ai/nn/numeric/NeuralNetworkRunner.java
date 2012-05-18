@@ -6,30 +6,36 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import org.apache.log4j.Logger;;
+
+import com.spinn3r.log5j.Logger;
+
 /**
  * This class encapsulates neural network training and running functionality.
  * 
  * @author hazai
  *
  */
-public class NeuralNetworkRunner 
+public abstract class NeuralNetworkRunner <I, O> 
 {
 	private BackpropNetwork nn;
 	private Normalizer normalizer;
 	
 	private static Logger log = Logger.getLogger(NeuralNetworkRunner.class);
 	
-	public NeuralNetworkRunner(Normalizer normalizer, BackpropNetwork nn)
+	private double learningRate;
+	
+	public NeuralNetworkRunner(Normalizer normalizer, BackpropNetwork nn, double learningRate)
 	{
 		this.nn = nn;
 		this.normalizer = normalizer;
+		this.learningRate = learningRate;
 //		System.out.println(normalizer.inputSize());
 	}
 
-	public NeuralNetworkRunner()
+	public NeuralNetworkRunner(double learningRate)
 	{
 
+		this.learningRate = learningRate;
 	}
 	
 	protected BackpropNetwork getNetwork() {
@@ -52,10 +58,15 @@ public class NeuralNetworkRunner
 	}
 
 
-	public double[] run(double [] inputs)
+	public O run(I i)
+	{
+		return run(toInputArray( i ));
+	}
+	
+	public O run(double [] inputArray)
 	{
 		
-		double [] ninputs = normalizer.normalizeInput(inputs);
+		double [] ninputs = normalizer.normalizeInput(inputArray);
 		
 		ArrayInput input = (ArrayInput)nn.getInputs();
 		for(int iIdx = 0; iIdx < ninputs.length; iIdx ++)
@@ -68,8 +79,11 @@ public class NeuralNetworkRunner
 		for(int oIdx = 0; oIdx < outputs.length; oIdx ++)
 			outputs[oIdx] = output.getValue(oIdx);
 		
-		return normalizer.denormalizeOutput(outputs);
-	}
+		return toOutput(normalizer.denormalizeOutput(outputs));
+	}	
+	public abstract double [] toInputArray(I input);
+	public abstract double [] toOutputArray(O input);
+	public abstract O toOutput(double [] outputs);
 	
 	/**
 	 * If inputs array is null, the training will be based on last state of the network.
@@ -78,9 +92,9 @@ public class NeuralNetworkRunner
 	 * @param outputs
 	 * @param learningRate
 	 */
-	public void train(double [] outputs, double learningRate)
+	public void train(O realOutput)
 	{
-		nn.propagateError(normalizer.normalizeOutput(outputs), learningRate);
+		nn.propagateError(normalizer.normalizeOutput(toOutputArray( realOutput )), learningRate);
 	}
 	
 	public static BackpropNetwork load(String filename) throws Exception

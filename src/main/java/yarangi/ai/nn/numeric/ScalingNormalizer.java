@@ -26,6 +26,8 @@ public class ScalingNormalizer implements Normalizer
 		for(int idx = 0; idx < minInput.length; idx ++)
 		{
 			inputRange[idx] = maxInput[idx] - minInput[idx];
+			if(inputRange[idx] == 0)
+				throw new IllegalArgumentException("Input range at idx " + idx + " is zero!");
 			inputOffset[idx] = - minInput[idx] / inputRange[idx];
 		}
 		
