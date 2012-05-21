@@ -26,15 +26,14 @@ public abstract class NeuralNetworkRunner <I, O>
 	
 	public NeuralNetworkRunner(Normalizer normalizer, BackpropNetwork nn, double learningRate)
 	{
+		this(learningRate);
+		
 		this.nn = nn;
 		this.normalizer = normalizer;
-		this.learningRate = learningRate;
-//		System.out.println(normalizer.inputSize());
 	}
 
 	public NeuralNetworkRunner(double learningRate)
 	{
-
 		this.learningRate = learningRate;
 	}
 	
@@ -42,28 +41,46 @@ public abstract class NeuralNetworkRunner <I, O>
 		return nn;
 	}
 
-
+	/**
+	 * Sets network
+	 * @param nn
+	 */
 	protected void setNetwork(BackpropNetwork nn) {
 		this.nn = nn;
 	}
 
-
+	/**
+	 * @return Network input/output normalization strategy
+	 */
 	protected Normalizer getNormalizer() {
 		return normalizer;
 	}
 
-
+	/**
+	 * Defines network input/output normalization strategy.
+	 * @param normalizer
+	 */
 	protected void setNormalizer(Normalizer normalizer) {
 		this.normalizer = normalizer;
 	}
 
-
+	/**
+	 * Runs network for specified input object and return network output.
+	 * @param i
+	 * @return
+	 */
 	public O run(I i)
 	{
-		return run(toInputArray( i ));
+		return toOutput(run(toInputArray( i )));
 	}
 	
-	public O run(double [] inputArray)
+	/**
+	 * Runs the network over specified input array and return nework output values
+	 * 
+	 * @param inputArray
+	 * @return
+	 */
+	protected double [] run(double [] inputArray)
 	{
 		
 		double [] ninputs = normalizer.normalizeInput(inputArray);
@@ -79,11 +96,29 @@ public abstract class NeuralNetworkRunner <I, O>
 		for(int oIdx = 0; oIdx < outputs.length; oIdx ++)
 			outputs[oIdx] = output.getValue(oIdx);
 		
-		return toOutput(normalizer.denormalizeOutput(outputs));
-	}	
-	public abstract double [] toInputArray(I input);
-	public abstract double [] toOutputArray(O input);
-	public abstract O toOutput(double [] outputs);
+		return normalizer.denormalizeOutput(outputs);
+	}
+	
+	/**
+	 * Converts input object to input values array.
+	 * @param input
+	 * @return
+	 */
+	protected abstract double [] toInputArray(I input);
+	
+	/**
+	 * Converts output object to output values array.
+	 * @param input
+	 * @return
+	 */
+	protected abstract double [] toOutputArray(O input);
+	
+	/**
+	 * Converts output values array to output object.
+	 * @param outputs
+	 * @return
+	 */
+	protected abstract O toOutput(double [] outputs);
 	
 	/**
 	 * If inputs array is null, the training will be based on last state of the network.
@@ -97,7 +132,14 @@ public abstract class NeuralNetworkRunner <I, O>
 		nn.propagateError(normalizer.normalizeOutput(toOutputArray( realOutput )), learningRate);
 	}
 	
-	public static BackpropNetwork load(String filename) throws Exception
+	/**
+	 * Loads network from file.
+	 * TODO: some metainfo is required here
+	 * @param filename
+	 * @return
+	 * @throws Exception
+	 */
+	public static BackpropNetwork load(String filename)
 	{
 		BackpropNetwork bpn;
 		ObjectInputStream ois = null;
@@ -105,16 +147,26 @@ public abstract class NeuralNetworkRunner <I, O>
 			ois = new ObjectInputStream(new FileInputStream(filename));
 			bpn = (BackpropNetwork)ois.readObject();
 		} 
-		catch (FileNotFoundException e) { throw new Exception(e); } 
-		catch (IOException e) { throw new Exception(e); } 
-		catch (ClassNotFoundException e) { throw new Exception(e); }
+		catch (FileNotFoundException e) { throw new RuntimeException(e); } 
+		catch (IOException e) { throw new RuntimeException(e); } 
+		catch (ClassNotFoundException e) { throw new RuntimeException(e); }
 		finally {
-			if(ois != null) ois.close();
+			try
+			{
+				if(ois != null)ois.close();
+			} 
+			catch ( IOException e ) { throw new RuntimeException(e); }
 		}
 		
 		return bpn;
 	}
 	
+	/**
+	 * Stores specified network to file
+	 * 
+	 * @param net
+	 * @param filename
+	 */
 	public static void save(BackpropNetwork net, String filename)
 	{
 		ObjectOutputStream os = null;
@@ -129,6 +181,5 @@ public abstract class NeuralNetworkRunner <I, O>
 		finally { try {	os.close();	} catch (IOException e) { log.error(e); } 
 		}
 	}
-	
-	
+
 }

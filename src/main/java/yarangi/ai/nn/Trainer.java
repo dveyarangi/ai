@@ -1,6 +1,5 @@
 package yarangi.ai.nn;
 
-import yarangi.ai.nn.numeric.BackpropNetwork;
 
 public interface Trainer
 {	
