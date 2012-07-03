@@ -143,7 +143,7 @@ public class Pool <C extends ICandidate>
 	{
 		Iterator <C> it = soup.iterator();
 		C candidate = it.next();
-		int n = RandomUtil.getRandomInt( soup.size() ) ;
+		int n = RandomUtil.N( soup.size() ) ;
 		for(int i = 1; i <= n; i ++)
 			candidate = it.next();
 		

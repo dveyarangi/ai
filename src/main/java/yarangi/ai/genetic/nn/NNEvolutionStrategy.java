@@ -38,7 +38,7 @@ public abstract class NNEvolutionStrategy implements IEvolutionStrategy <NNCandi
 		}
 		
 		Collection <NNCandidate> pparents = pool.pickBest( 5 );
-		switch(RandomUtil.getRandomInt( 10 )) {
+		switch(RandomUtil.N( 10 )) {
 		case 0: if(pool.getSize() > 0) return pool.getRandomCandidate(); // any outcast gets another chance
 //		case 1: if(pool.getSize() > 0) return pparents.iterator().next(); // alpha-parent retested
 		case 3: case 4: if(pool.getSize() > 0) return createOffspring(pparents.iterator().next()); // alpha-parent gives birth

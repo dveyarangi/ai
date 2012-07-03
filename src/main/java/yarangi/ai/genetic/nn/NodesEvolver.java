@@ -42,7 +42,7 @@ public class NodesEvolver implements IEvolver <NNCandidate>
 		
 		// picking node to mutate:
 		for(int node = 0; node < 10; node ++) {
-			int mutatedNodeIdx = RandomUtil.getRandomInt( count );
+			int mutatedNodeIdx = RandomUtil.N( count );
 			
 			// getting node weights:
 			int nodeIdxs[] = Serializer.getNodeIndices( networkDescriptor, mutatedNodeIdx );
@@ -80,7 +80,7 @@ public class NodesEvolver implements IEvolver <NNCandidate>
 			int nodeOffset = nodeIdxs[0];
 			int nodeLength = nodeIdxs[1];
 			
-			pickedParent = parents.get(RandomUtil.getRandomInt( parents.size()));
+			pickedParent = parents.get(RandomUtil.N( parents.size()));
 			
 			try {
 			System.arraycopy( pickedParent.getChromosome(), nodeOffset, offspring, nodeOffset, nodeLength );
