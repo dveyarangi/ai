@@ -17,24 +17,28 @@ import com.spinn3r.log5j.Logger;
  */
 public abstract class NeuralNetworkRunner <I, O> 
 {
+	
+	private String name;
 	private BackpropNetwork nn;
 	private Normalizer normalizer;
 	
 	private static Logger log = Logger.getLogger(NeuralNetworkRunner.class);
 	
-	private double learningRate;
+	private static final long SAVE_EACH = 10000;
+	private long iteration = 0;
 	
-	public NeuralNetworkRunner(Normalizer normalizer, BackpropNetwork nn, double learningRate)
+	public NeuralNetworkRunner(String name, Normalizer normalizer, BackpropNetwork nn)
 	{
-		this(learningRate);
+		this(name);
 		
 		this.nn = nn;
 		this.normalizer = normalizer;
 	}
 
-	public NeuralNetworkRunner(double learningRate)
+	public NeuralNetworkRunner(String name)
 	{
-		this.learningRate = learningRate;
+		this.name = name;
+		this.normalizer = new TransparentNormalizer();
 	}
 	
 	protected BackpropNetwork getNetwork() {
@@ -45,14 +49,14 @@ public abstract class NeuralNetworkRunner <I, O>
 	 * Sets network
 	 * @param nn
 	 */
-	protected void setNetwork(BackpropNetwork nn) {
+	public void setNetwork(BackpropNetwork nn) {
 		this.nn = nn;
 	}
 
 	/**
 	 * @return Network input/output normalization strategy
 	 */
-	protected Normalizer getNormalizer() {
+	public Normalizer getNormalizer() {
 		return normalizer;
 	}
 
@@ -83,15 +87,15 @@ public abstract class NeuralNetworkRunner <I, O>
 	protected double [] run(double [] inputArray)
 	{
 		
-		double [] ninputs = normalizer.normalizeInput(inputArray);
+		double [] ninputs = normalizer == null ? inputArray : normalizer.normalizeInput(inputArray);
 		
-		ArrayInput input = (ArrayInput)nn.getInputs();
+		ArrayInput input = nn.getInput();
 		for(int iIdx = 0; iIdx < ninputs.length; iIdx ++)
 			input.setValue(iIdx, ninputs[iIdx]);
 		
 		nn.activate();
 		
-		ArrayInput output = (ArrayInput) nn.getOutput();
+		ArrayInput output = nn.getOutput();
 		double [] outputs = new double[output.size()];
 		for(int oIdx = 0; oIdx < outputs.length; oIdx ++)
 			outputs[oIdx] = output.getValue(oIdx);
@@ -129,22 +133,29 @@ public abstract class NeuralNetworkRunner <I, O>
 	 */
 	public void train(O realOutput)
 	{
-		nn.propagateError(normalizer.normalizeOutput(toOutputArray( realOutput )), learningRate);
+		double [] output = toOutputArray( realOutput );
+		if(normalizer != null)
+			output = normalizer.normalizeOutput( output );
+		nn.propagateError(output, getLearningRate());
+		
+
 	}
 	
 	/**
 	 * Loads network from file.
 	 * TODO: some metainfo is required here
+	 * @param descriptor2 
 	 * @param filename
 	 * @return
 	 * @throws Exception
 	 */
-	public static BackpropNetwork load(String filename)
+	public static BackpropNetwork load(int[] descriptor, String suffix)
 	{
+		
 		BackpropNetwork bpn;
 		ObjectInputStream ois = null;
 		try {
-			ois = new ObjectInputStream(new FileInputStream(filename));
+			ois = new ObjectInputStream(new FileInputStream(createNetworkFilename( descriptor, suffix )));
 			bpn = (BackpropNetwork)ois.readObject();
 		} 
 		catch (FileNotFoundException e) { throw new RuntimeException(e); } 
@@ -167,12 +178,15 @@ public abstract class NeuralNetworkRunner <I, O>
 	 * @param net
 	 * @param filename
 	 */
-	public static void save(BackpropNetwork net, String filename)
+	public String save()
 	{
+		int [] descriptor = nn.createDescriptor();
+		String filename = createNetworkFilename(descriptor, name);
+		
 		ObjectOutputStream os = null;
 		try {
 			os = new ObjectOutputStream(new FileOutputStream(filename));
-			os.writeObject(net);
+			os.writeObject(nn);
 			os.flush();
 			
 		} 
@@ -180,6 +194,15 @@ public abstract class NeuralNetworkRunner <I, O>
 		catch (IOException e) { log.error(e); }
 		finally { try {	os.close();	} catch (IOException e) { log.error(e); } 
 		}
+		
+		return filename;
 	}
+
+	protected static String createNetworkFilename(int [] descriptor, String suffix)
+	{
+		return BackpropNetwork.toString( descriptor ) + "." + suffix;
+	}
+	
+	protected abstract double getLearningRate();
 
 }

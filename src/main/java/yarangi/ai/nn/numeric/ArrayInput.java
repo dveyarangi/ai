@@ -1,35 +1,55 @@
 package yarangi.ai.nn.numeric;
 
-import java.util.Vector;
+import java.io.Serializable;
 
 import yarangi.ai.nn.Input;
 
-public final class ArrayInput extends Vector <NumericNeuronInput> implements Input 
+/**
+ * Modifiable buffer array.
+ * Used to store and transfer previous network/layer input 
+ * @author dveyarangi
+ *
+ */
+public final class ArrayInput implements Input, Serializable 
 {
 
 	private static final long serialVersionUID = -1124329525864412292L;
 
+	private NumericNeuronInput [] inputBuffer;
 
 	public ArrayInput(int size)
 	{
-		super(size);
+		this(new double [size]);
 	}
 	
 	public ArrayInput(double [] array)
 	{
-		super(array.length);
+		if(array.length <= 0)
+			throw new IllegalArgumentException("Input size is too small: " + array.length);
+		
+		this.inputBuffer = new NumericNeuronInput [ array.length ];
 		for(int idx = 0; idx < array.length; idx ++)
-			add(idx, new NumericNeuronInput(array[idx]));
+			inputBuffer[idx] = new NumericNeuronInput(array[idx]);
 	}
 	
-	public double getValue(int idx) { return get(idx).getValue(); }
+	public double getValue(int idx) { return inputBuffer[idx].getValue(); }
 	
-	public NumericNeuronInput getInput(int idx) { return get(idx); }
+	protected NumericNeuronInput getInput(int idx) { return inputBuffer[idx]; }
 	
-	public void setValue(int idx, double value) { get(idx).setValue(value); }
+	public void setValue(int idx, double value) { inputBuffer[idx].setValue( value); }
+
+	protected void set(int idx, NumericNeuronInput output)
+	{
+		inputBuffer[idx] = output;
+	}
+
+	public int size()
+	{
+		return inputBuffer.length;
+	}
 	
 
-	public String toString() 
+/*	public String toString() 
 	{
 		StringBuilder sb = new StringBuilder();
 		sb.append("[").append(getValue(0));
@@ -37,5 +57,5 @@ public final class ArrayInput extends Vector <NumericNeuronInput> implements Inp
 			sb.append(", ").append(get(idx));
 		sb.append("]");
 		return sb.toString();
-	}
+	}*/
 }

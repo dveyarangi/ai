@@ -2,6 +2,9 @@ package yarangi.ai.nn;
 
 import java.util.Collection;
 
+import yarangi.ai.nn.numeric.ArrayInput;
+import yarangi.ai.nn.numeric.NumericNeuronInput;
+
 /**
  * This is a high-level interface that characterizes behavior of neural network elements.
  * Network data structure is combined of Nodes, which can be grouped in custom hierarchy.
@@ -17,13 +20,13 @@ public interface Node
 	 * The Input object's reference will remain unchanged during node lifecycle.
 	 * The values for the Input are to be changed using the implementing classes means.
 	 */
-	public void addInput(Input input);
+//	public void addInput(Input input);
 
 	
 	/**
 	 * Return the array of inputs of this node.
 	 */
-	public Collection <? extends Input> getInputs();
+//	public Collection <? extends Input> getInputs();
 	
 	/** 
 	 * Encapsulates the activation logic for this node. 

@@ -1,11 +1,7 @@
 package yarangi.ai.nn.numeric;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
-import yarangi.ai.nn.Input;
 import yarangi.ai.nn.Node;
 import yarangi.ai.nn.init.InitializerFactory;
 
@@ -22,15 +18,26 @@ public class NumericNeuron implements Node, Serializable
 
 	private NumericAF AF;
 	
-	private Map <NumericNeuronInput, Double> inputs = new HashMap<NumericNeuronInput, Double> ();
+//	private Map <NumericNeuronInput, Double> inputs = new HashMap<NumericNeuronInput, Double> ();
+	
+	private double [] weights;
+	
+	private ArrayInput input;
 	
 	private NumericNeuronInput output;
 	private double sum;
 	
-	public NumericNeuron(NumericAF naf)
+	public NumericNeuron(NumericAF naf, ArrayInput input)
 	{
 		AF = naf;
 		output = new NumericNeuronInput();
+		
+		weights = new double[input.size()];
+		for(int idx = 0; idx < weights.length; idx ++)
+		{
+			weights[idx] = InitializerFactory.createWeight();
+		}
+		this.input = input;
 		
 //		addInput(new NumericNeuronInput(bias));
 	}
@@ -38,28 +45,29 @@ public class NumericNeuron implements Node, Serializable
 	public void activate() 
 	{
 		sum = 0;
-		for(NumericNeuronInput input : inputs.keySet())
-			sum += inputs.get(input) * input.getValue();
+		
+		for(int idx = 0; idx < weights.length; idx ++)
+			sum += input.getValue( idx ) * weights[idx];
+		
 		output.setValue(AF.calculate(sum));
 	}
 
-	public Input getOutput() { return output; }
+	public NumericNeuronInput getOutput() { return output; }
 
 	protected double getSum() { return sum; }
 	
-	public void addInput(Input input) 
-	{
-		NumericNeuronInput i = (NumericNeuronInput) input;
-		inputs.put(i, InitializerFactory.createWeight());
-	}
+	protected double getWeight(int idx) { return weights[idx]; }
 	
-	
-
-	public Collection <? extends Input> getInputs() { return inputs.keySet(); }
-	
-	protected double getWeight(NumericNeuronInput input) { return inputs.get(input); }
-	
-	protected void setWeight(NumericNeuronInput input, double weight) { inputs.put(input, weight); }
+	protected void setWeight(int idx, double weight) { weights[idx] = weight; }
 
 	public NumericAF getAF() { return AF; }
+	
+/*	public String toDescriptor()
+	{
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("N_")
+		sb.append("F=").append(AF.toDescriptor());
+		for()
+	}*/
 }

@@ -1,9 +1,7 @@
 package yarangi.ai.nn.numeric;
 
 import java.io.Serializable;
-import java.util.Collection;
 
-import yarangi.ai.nn.Input;
 import yarangi.ai.nn.Node;
 
 /**
@@ -24,33 +22,38 @@ public class CompleteNeuronLayer implements Node, Serializable
 	
 //	private NumericAF AF;
 	
-	public CompleteNeuronLayer(int n, NumericAF naf, double bias)
+/*	public CompleteNeuronLayer(int neuronNum, ArrayInput input, NumericAF naf, double bias)
 	{
-		output = new ArrayInput(n);
-		neurons = new NumericNeuron [n];
-		for(int idx = 0; idx < n; idx ++)
-		{
-			neurons[idx] = new NumericNeuron(naf);
-			output.add(idx, (NumericNeuronInput)neurons[idx].getOutput());
-		}
+		NumericAF [] afs = new NumericAF[neuronNum];
+		for(int idx = 0; idx < neuronNum; idx ++)
+			afs[idx] = naf;
 		
-		if(bias != 0)
-			addInput(new NumericNeuronInput(bias));
-	}
+		this(afs, input, bias);
+	}*/
 	
-	public CompleteNeuronLayer(NumericAF [] nafs, double bias)
+	public CompleteNeuronLayer(NumericAF [] nafs, ArrayInput input, double bias)
 	{
 		output = new ArrayInput(nafs.length);
-//		this.AF = naf;
+		this.input = new ArrayInput(input.size() + 1);
+		
+		// creating new array with same elements:
+		for(int idx = 0; idx < input.size(); idx ++)
+		{
+			this.input.set( idx, input.getInput( idx ) );
+		}
+		
+		// adding bias input:
+		this.input.set( input.size(), new NumericNeuronInput( bias ) );
+		
 		neurons = new NumericNeuron [nafs.length];
 		for(int idx = 0; idx < nafs.length; idx ++)
 		{
-			neurons[idx] = new NumericNeuron(nafs[idx]);
-			output.add(idx, (NumericNeuronInput)neurons[idx].getOutput());
+			neurons[idx] = new NumericNeuron(nafs[idx], this.input);
+			output.set(idx, neurons[idx].getOutput());
 		}
 		
-		if(bias != 0)
-			addInput(new NumericNeuronInput(bias));
+//		if(bias != 0)
+//			addInput(new NumericNeuronInput(bias));
 	}	
 	protected NumericNeuron [] getNeurons() { return neurons; }
 	
@@ -62,25 +65,10 @@ public class CompleteNeuronLayer implements Node, Serializable
 			neurons[idx].activate();
 	}
 
-	public void addInput(Input array) 
-	{
-		input = (ArrayInput) array;
-		for(int idx = 0; idx < neurons.length; idx ++)
-			for(NumericNeuronInput nni : input)
-				neurons[idx].addInput(nni);
-	}
+	public ArrayInput getOutput() { return output; }
 	
-	protected void addInput(NumericNeuronInput nni) 
-	{
-		for(int idx = 0; idx < neurons.length; idx ++)
-				neurons[idx].addInput(nni);
-	}
+	protected ArrayInput getInput() { return input; }
 
-	public Collection<? extends Input> getInputs() {
-		return input;
-	}
-
-	public Input getOutput() { return output; }
 
 /*	protected double getWeight(int neuronIdx, int inputIdx) {
 		return neurons[neuronIdx].getWeight(input.get(inputIdx));

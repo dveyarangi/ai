@@ -1,10 +1,10 @@
 package yarangi.ai.nn.numeric;
 
 import java.io.Serializable;
-import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
-import yarangi.ai.nn.Input;
 import yarangi.ai.nn.NeuralNetwork;
 
 /**
@@ -19,20 +19,66 @@ public class BackpropNetwork extends NeuralNetwork implements Serializable
 	private static final long serialVersionUID = 8421544576382305404L;
 
 	/** output neuron layer (layer of linear neurons, with exactly one neuron per output) */
-	public CompleteNeuronLayer outputLayer;
+	private CompleteNeuronLayer outputLayer;
 	
 	/** hidden layers of network */ 
-	public LinkedList <CompleteNeuronLayer> layers = new LinkedList <CompleteNeuronLayer> ();
+	private LinkedList <CompleteNeuronLayer> layers = new LinkedList <CompleteNeuronLayer> ();
+	
+	private ArrayInput inputBuffer;
 	
 	/** 
 	 * Create a new backpropagation network with specified number of outputs.
 	 * 
 	 * @param outN Number of outputs in the resulting network.
 	 */
-	public BackpropNetwork(int outN)
+	public BackpropNetwork(int inputsNum, List <NumericAF[]> afs, double [] biases)
 	{
-		outputLayer = new CompleteNeuronLayer(outN, new TransparentAF(), 0);
-		layers.add(outputLayer);
+		init( inputsNum, afs, biases );
+	}
+	
+	private void init(int inputsNum, List <NumericAF[]> afs, double [] biases)
+	{
+		inputBuffer = new ArrayInput(inputsNum);
+		
+		ArrayInput currInput = inputBuffer;
+		Iterator <NumericAF[]> it = afs.iterator();
+		int idx = 0;
+		while(it.hasNext())
+		{
+			NumericAF[] layerAFs = it.next();
+			
+			CompleteNeuronLayer currLayer = new CompleteNeuronLayer( layerAFs, currInput, biases[idx] );
+			layers.add( currLayer );
+			
+			currInput = currLayer.getOutput();
+			idx ++;
+			
+		}
+		
+		outputLayer = layers.getLast();
+	}
+	
+	/**
+	 * Creates network based on descriptor, with all biases equal 1
+	 * @param descriptor
+	 * @param af
+	 */
+	public BackpropNetwork(int [] descriptor, NumericAF af) 
+	{
+		List <NumericAF []> afs = new LinkedList <NumericAF []> ();
+		double [] biases = new double [descriptor.length-1];
+		for(int idx = 1; idx < descriptor.length; idx ++) 
+		{
+			NumericAF [] afsArr = new NumericAF[descriptor[idx]];
+			for(int n = 0; n < afsArr.length; n ++)
+				afsArr[n] = af;
+			
+			afs.add( afsArr );
+			biases[idx-1] = 1;
+		}
+		
+		init( descriptor[0], afs, biases );
+		
 	}
 
 	/**
@@ -40,35 +86,16 @@ public class BackpropNetwork extends NeuralNetwork implements Serializable
 	 */
 	public synchronized void activate() 
 	{
-		for(CompleteNeuronLayer layer : layers)
+		for(CompleteNeuronLayer layer : layers) {
 			layer.activate();
-	}
-	
-	/** 
-	 * Adds a neuron layer to the network. The layer is added as input layer.
-	 * 
-	 * @param layer Layer to add as the first layer in the network.
-	 */
-	public void addLayer(CompleteNeuronLayer layer) 
-	{
-		layers.getFirst().addInput(layer.getOutput());
-		layers.addFirst(layer); 
+		}
 	}
 
-	/** 
-	 * {@inheritDoc}
-	 */
-	public void addInput(Input array) { layers.getFirst().addInput(array); }
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public Collection<? extends Input> getInputs() { return layers.getFirst().getInputs(); }
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public Input getOutput() {	return outputLayer.getOutput(); }
+	public ArrayInput getOutput() {	return outputLayer.getOutput(); }
 	
 	/** 
 	 * This method implements error backpropagation through layers of this network.
@@ -83,7 +110,7 @@ public class BackpropNetwork extends NeuralNetwork implements Serializable
 		
 		
 		double [] deltas = new double[realOutputs.length];
-		ArrayInput netOutput = (ArrayInput) this.getOutput();
+		ArrayInput netOutput = this.getOutput();
 		
 		// calculating error deltas for output layer:
 		for(int outputIdx = 0; outputIdx < deltas.length; outputIdx ++)
@@ -113,7 +140,7 @@ public class BackpropNetwork extends NeuralNetwork implements Serializable
 				double deltaSum = 0;
 				for(int neuronIdx = 0; neuronIdx < currLayer.getNeurons().length; neuronIdx ++)
 				{
-					deltaSum += currDeltas[neuronIdx] * currLayer.getNeurons()[neuronIdx].getWeight(nni);
+					deltaSum += currDeltas[neuronIdx] * currLayer.getNeurons()[neuronIdx].getWeight( prevNeuronIdx );
 				}
 				prevDeltas[prevNeuronIdx] = neuron.getAF().derivative(neuron.getSum()) * deltaSum;
 
@@ -129,19 +156,62 @@ public class BackpropNetwork extends NeuralNetwork implements Serializable
 			CompleteNeuronLayer layer = layers.get(layerIdx);
 			double [] currDeltas = layerDeltas.get(layerIdx);
 			
-			for(int inputIdx = 0; inputIdx < layer.getInputs().size(); inputIdx ++)
+			for(int inputIdx = 0; inputIdx < layer.getInput().size(); inputIdx ++)
 			{
-				NumericNeuronInput nni = ((ArrayInput)layer.getInputs()).getInput(inputIdx);
+				double inputValue = layer.getInput().getValue( inputIdx );
 				double step = learningRate /** layer.getAF().derivative(nni.getValue())*/;
 				
 				for(int neuronIdx = 0; neuronIdx < currDeltas.length; neuronIdx ++)
 				{
 						NumericNeuron neuron = layer.getNeurons()[neuronIdx];
-						double weight = neuron.getWeight(nni) + currDeltas[neuronIdx] * step * nni.getValue();
-						neuron.setWeight(nni, weight);
+						double weight = neuron.getWeight(inputIdx) + currDeltas[neuronIdx] * step * inputValue;
+						neuron.setWeight(inputIdx, weight);
 				}
 
 			}
 		}
+	}
+
+	public ArrayInput getInput()
+	{
+		return inputBuffer;
+	}
+
+	public int getLayersNum()
+	{
+		return layers.size();
+	}
+
+	
+	public int [] createDescriptor() 
+	{
+		int [] descriptor = new int [getLayersNum() + 1];
+		descriptor[0] = inputBuffer.size();
+		for(int idx = 0; idx < getLayersNum(); idx ++) {
+			descriptor[idx+1] = layers.get(idx).getOutput().size();
+		}
+		
+		return descriptor;
+	}
+	
+	public int [] parseDescriptor(String descriptorStr) {
+		String [] parts = descriptorStr.split( "-" );
+		int [] descriptor = new int[parts.length];
+		for(int idx = 0; idx < parts.length; idx ++)
+			descriptor[idx] = Integer.parseInt( parts[idx] );
+		
+		return descriptor;
+	}
+	
+	public static String toString(int [] descriptor)
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append("net");
+		for(int idx = 0; idx < descriptor.length; idx ++) {
+			sb.append("-").append(descriptor[idx]);
+		}
+		
+		return sb.toString(); 
+
 	}
 }
